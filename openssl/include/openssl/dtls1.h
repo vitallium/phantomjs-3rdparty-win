@@ -1,7 +1,7 @@
 /* ssl/dtls1.h */
-/* 
+/*
  * DTLS implementation written by Nagendra Modadugu
- * (nagendra@cs.stanford.edu) for the OpenSSL project 2005.  
+ * (nagendra@cs.stanford.edu) for the OpenSSL project 2005.
  */
 /* ====================================================================
  * Copyright (c) 1999-2005 The OpenSSL Project.  All rights reserved.
@@ -11,7 +11,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -84,6 +84,8 @@ extern "C" {
 #endif
 
 #define DTLS1_VERSION			0xFEFF
+#define DTLS_MAX_VERSION		DTLS1_VERSION
+
 #define DTLS1_BAD_VER			0x0100
 
 #if 0
@@ -115,6 +117,9 @@ extern "C" {
 #define DTLS1_SCTP_AUTH_LABEL	"EXPORTER_DTLS_OVER_SCTP"
 #endif
 
+/* Max MTU overhead we know about so far is 40 for IPv6 + 8 for UDP */
+#define DTLS1_MAX_MTU_OVERHEAD                   48
+
 typedef struct dtls1_bitmap_st
 	{
 	unsigned long map;		/* track 32 packets on 32-bit systems
@@ -131,7 +136,7 @@ struct dtls1_retransmit_state
 #ifndef OPENSSL_NO_COMP
 	COMP_CTX *compress;				/* compression */
 #else
-	char *compress;	
+	char *compress;
 #endif
 	SSL_SESSION *session;
 	unsigned short epoch;
@@ -158,10 +163,10 @@ struct dtls1_timeout_st
 	{
 	/* Number of read timeouts so far */
 	unsigned int read_timeouts;
-	
+
 	/* Number of write timeouts so far */
 	unsigned int write_timeouts;
-	
+
 	/* Number of alerts received so far */
 	unsigned int num_alerts;
 	};
@@ -186,10 +191,10 @@ typedef struct dtls1_state_st
 	unsigned char rcvd_cookie[DTLS1_COOKIE_LENGTH];
 	unsigned int cookie_len;
 
-	/* 
+	/*
 	 * The current data and handshake epoch.  This is initially
 	 * undefined, and starts at zero once the initial handshake is
-	 * completed 
+	 * completed
 	 */
 	unsigned short r_epoch;
 	unsigned short w_epoch;
@@ -229,6 +234,7 @@ typedef struct dtls1_state_st
 	/* Is set when listening for new connections with dtls1_listen() */
 	unsigned int listen;
 
+	unsigned int link_mtu; /* max on-the-wire DTLS packet size */
 	unsigned int mtu; /* max DTLS packet size */
 
 	struct hm_header_st w_msg_hdr;
@@ -250,6 +256,10 @@ typedef struct dtls1_state_st
 	unsigned int handshake_fragment_len;
 
 	unsigned int retransmitting;
+	/*
+	 * Set when the handshake is ready to process peer's ChangeCipherSpec message.
+	 * Cleared after the message has been processed.
+	 */
 	unsigned int change_cipher_spec_ok;
 
 #ifndef OPENSSL_NO_SCTP
@@ -284,4 +294,3 @@ typedef struct dtls1_record_data_st
 }
 #endif
 #endif
-
